@@ -1038,8 +1038,8 @@ textarea:focus-visible {
   <div class="container">
     <div class="contact-phone-card" style="max-width:420px; margin:0 auto;">
       <!-- 電話番号確定後、tel:0000000000 の形で href を差し替えてください -->
-      <div class="tel"><a href="tel:0000000000" class="tbd">確認中</a></div>
-      <div class="hours">受付時間 8:30〜17:30（土日祝も対応可）</div>
+      <div class="tel"><a href="tel:0753200963">075-320-0963</a></div>
+      <div class="hours">受付時間 8:30〜17:30（土日祝を除く）</div>
     </div>
   </div>
 </section>
@@ -1051,8 +1051,12 @@ textarea:focus-visible {
       <h2>フォームでのお問い合わせ</h2>
     </div>
 
-    <!-- 送信先は未接続です。公開前に、Wixのフォーム機能や外部フォーム送信サービス（例：Formspree等）に action を接続してください -->
-    <form class="form-wrap" data-contact-form action="#" method="post">
+    <!-- 送信先：Formspree（https://formspree.io）を使用しています。
+         下記のYOUR_FORM_IDの部分は、まだ仮の値です。
+         Formspreeで makoto0530tsumugi@gmail.com 宛のフォームを作成し、
+         発行されたForm IDに置き換えてください（下の吹き出しで詳しく説明します）。 -->
+    <form class="form-wrap" data-contact-form action="https://formspree.io/f/YOUR_FORM_ID" method="post">
+      <input type="hidden" name="_subject" value="【訪問介護つむぎ】ホームページからのお問い合わせ">
       <div class="field">
         <label for="name">お名前<span class="req">必須</span></label>
         <input type="text" id="name" name="name" required autocomplete="name">
@@ -1117,8 +1121,8 @@ textarea:focus-visible {
         <h3>Contact</h3>
         <ul>
           <!-- 電話番号は代表者確認後にここへ反映してください -->
-          <li><span class="tbd">TEL：確認中</span></li>
-          <li><span class="tbd">受付時間 8:30〜17:30（土日祝も対応可）</span></li>
+          <li><a href="tel:0753200963">TEL：075-320-0963</a></li>
+          <li><span class="tbd">受付時間 8:30〜17:30（土日祝を除く）</span></li>
           <li><a href="contact.html">お問い合わせフォーム</a></li>
         </ul>
       </div>
@@ -1177,17 +1181,50 @@ textarea:focus-visible {
     });
   }
 
-  /* ---- お問い合わせフォーム（送信先は未接続。後日フォーム送信サービスやWixのフォーム機能に接続してください）---- */
+  /* ---- お問い合わせフォーム（Formspreeで送信）---- */
   var form = document.querySelector("[data-contact-form]");
   if (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var status = form.querySelector(".form-status");
-      if (status) {
-        status.textContent = "送信内容を確認しました。担当者より折り返しご連絡いたします。（※現在このフォームはデザイン確認用のため、実際には送信されません。公開前に送信先の接続が必要です。）";
-        status.classList.add("is-visible");
+      var endpoint = form.getAttribute("action");
+      var submitBtn = form.querySelector(".form-submit");
+
+      if (!endpoint || endpoint.indexOf("YOUR_FORM_ID") !== -1) {
+        if (status) {
+          status.textContent = "送信先が未設定です。フォーム送信サービス（Formspree等）の接続が必要です。";
+          status.classList.add("is-visible");
+        }
+        return;
       }
-      form.reset();
+
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "送信中…"; }
+
+      fetch(endpoint, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { "Accept": "application/json" }
+      }).then(function (response) {
+        if (response.ok) {
+          if (status) {
+            status.textContent = "送信内容を確認しました。担当者より折り返しご連絡いたします。";
+            status.classList.add("is-visible");
+          }
+          form.reset();
+        } else {
+          if (status) {
+            status.textContent = "送信に失敗しました。お手数ですがお電話にてご連絡ください。";
+            status.classList.add("is-visible");
+          }
+        }
+      }).catch(function () {
+        if (status) {
+          status.textContent = "送信に失敗しました。お手数ですがお電話にてご連絡ください。";
+          status.classList.add("is-visible");
+        }
+      }).finally(function () {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "お問い合わせ"; }
+      });
     });
   }
 })();

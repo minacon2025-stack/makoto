@@ -1055,7 +1055,7 @@ textarea:focus-visible {
             <i class="ti ti-home ic" aria-hidden="true"></i>
             <div class="content">
               <div class="title">生活援助</div>
-              <div class="desc">掃除・洗濯・買い物・調理<br>薬の受け取り など</div>
+              <div class="desc">掃除・洗濯・買い物・調理 など</div>
             </div>
           </div>
         </div>
@@ -1071,14 +1071,6 @@ textarea:focus-visible {
           <div class="service-item">
             <i class="ti ti-user ic" aria-hidden="true"></i>
             <div class="content"><div class="title">重度訪問介護</div></div>
-          </div>
-          <div class="service-item">
-            <i class="ti ti-user ic" aria-hidden="true"></i>
-            <div class="content"><div class="title">同行援護</div></div>
-          </div>
-          <div class="service-item">
-            <i class="ti ti-user ic" aria-hidden="true"></i>
-            <div class="content"><div class="title">行動援護</div></div>
           </div>
         </div>
       </div>
@@ -1181,8 +1173,8 @@ textarea:focus-visible {
         <h3>Contact</h3>
         <ul>
           <!-- 電話番号は代表者確認後にここへ反映してください -->
-          <li><span class="tbd">TEL：確認中</span></li>
-          <li><span class="tbd">受付時間 8:30〜17:30（土日祝も対応可）</span></li>
+          <li><a href="tel:0753200963">TEL：075-320-0963</a></li>
+          <li><span class="tbd">受付時間 8:30〜17:30（土日祝を除く）</span></li>
           <li><a href="contact.html">お問い合わせフォーム</a></li>
         </ul>
       </div>
@@ -1241,17 +1233,50 @@ textarea:focus-visible {
     });
   }
 
-  /* ---- お問い合わせフォーム（送信先は未接続。後日フォーム送信サービスやWixのフォーム機能に接続してください）---- */
+  /* ---- お問い合わせフォーム（Formspreeで送信）---- */
   var form = document.querySelector("[data-contact-form]");
   if (form) {
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var status = form.querySelector(".form-status");
-      if (status) {
-        status.textContent = "送信内容を確認しました。担当者より折り返しご連絡いたします。（※現在このフォームはデザイン確認用のため、実際には送信されません。公開前に送信先の接続が必要です。）";
-        status.classList.add("is-visible");
+      var endpoint = form.getAttribute("action");
+      var submitBtn = form.querySelector(".form-submit");
+
+      if (!endpoint || endpoint.indexOf("YOUR_FORM_ID") !== -1) {
+        if (status) {
+          status.textContent = "送信先が未設定です。フォーム送信サービス（Formspree等）の接続が必要です。";
+          status.classList.add("is-visible");
+        }
+        return;
       }
-      form.reset();
+
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "送信中…"; }
+
+      fetch(endpoint, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { "Accept": "application/json" }
+      }).then(function (response) {
+        if (response.ok) {
+          if (status) {
+            status.textContent = "送信内容を確認しました。担当者より折り返しご連絡いたします。";
+            status.classList.add("is-visible");
+          }
+          form.reset();
+        } else {
+          if (status) {
+            status.textContent = "送信に失敗しました。お手数ですがお電話にてご連絡ください。";
+            status.classList.add("is-visible");
+          }
+        }
+      }).catch(function () {
+        if (status) {
+          status.textContent = "送信に失敗しました。お手数ですがお電話にてご連絡ください。";
+          status.classList.add("is-visible");
+        }
+      }).finally(function () {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "お問い合わせ"; }
+      });
     });
   }
 })();
