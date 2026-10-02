@@ -441,6 +441,22 @@ textarea:focus-visible {
   padding: 24px;
 }
 
+
+/* ご利用料金 */
+.pricing-card {
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.pricing-card p {
+  margin: 0;
+}
+.pricing-contact {
+  padding: 28px 0 56px;
+}
+
 /* ============================================
    Service category panels（ご利用いただけるサービス）
    ============================================ */
